@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scare Maze Staff Panel</title>
     
-    <!-- Firebase SDK - Use CDN to avoid ES module issues -->
+    <!-- Use Firebase CDN to load Firebase correctly -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
 
@@ -76,7 +76,7 @@
     </div>
 
     <script>
-        // Firebase configuration using CDN (no import/export statements)
+        // Firebase configuration using CDN (No imports/exports needed)
         const firebaseConfig = {
             apiKey: "AIzaSyDogi_bX6-68718JS-Djic6Nh9MUHsq3mU",
             authDomain: "mazecontrol-800a9.firebaseapp.com",
@@ -87,20 +87,14 @@
             appId: "1:1003126065904:web:dee5de8fd9054934ca1035"
         };
 
-        // Initialize Firebase (must be done before using firebase functions)
+        // Initialize Firebase (Make sure Firebase is initialized before any usage)
         firebase.initializeApp(firebaseConfig);
+
         const database = firebase.database();
 
         let countdownTime = 10; // Default countdown time, will be fetched from Firebase
         let countdownInterval;
         let groupSentTime = 0;
-
-        // Ensure Firebase is initialized correctly
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        } else {
-            firebase.app(); // if already initialized
-        }
 
         // Fetch countdownTime from Firebase
         firebase.database().ref('settings/countdownTime').on('value', (snapshot) => {
@@ -108,8 +102,6 @@
             if (data !== null) {
                 countdownTime = data;
                 console.log("Countdown time fetched from Firebase:", countdownTime);
-            } else {
-                console.log("No countdownTime found in Firebase");
             }
         });
 
