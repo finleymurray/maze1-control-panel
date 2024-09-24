@@ -101,6 +101,8 @@
         });
 
         function sendGroup() {
+            console.log("Button Clicked");  // Debug: Check if the function is triggered
+
             let guestCount = parseInt(document.getElementById('guestInput').value);
             if (isNaN(guestCount) || guestCount < 1) guestCount = 14;  // Default to 14 if invalid
 
@@ -133,6 +135,7 @@
         }
 
         function resetScreen() {
+            console.log("Resetting Screen");  // Debug: Check if reset is triggered
             document.getElementById('screen').classList.remove('red');
             document.getElementById('screen').classList.add('green');
             document.getElementById('screen').innerText = 'SEND IN GROUP';
