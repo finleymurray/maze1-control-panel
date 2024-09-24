@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scare Maze Staff Panel</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database.js"></script>
+    <!-- Firebase SDK - Use CDN for traditional script import -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
     <style>
         body, html {
             height: 100%;
@@ -74,7 +74,7 @@
     </div>
 
     <script>
-        // Firebase configuration and initialization
+        // Firebase configuration and initialization using CDN
         const firebaseConfig = {
             apiKey: "AIzaSyDogi_bX6-68718JS-Djic6Nh9MUHsq3mU",
             authDomain: "mazecontrol-800a9.firebaseapp.com",
@@ -85,6 +85,7 @@
             appId: "1:1003126065904:web:dee5de8fd9054934ca1035"
         };
 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
@@ -97,14 +98,15 @@
             const data = snapshot.val();
             if (data !== null) {
                 countdownTime = data;
+                console.log("Countdown time fetched from Firebase:", countdownTime);
             }
         });
 
         function sendGroup() {
-            console.log("Button Clicked");  // Debug: Check if the function is triggered
+            console.log("Button Clicked");
 
             let guestCount = parseInt(document.getElementById('guestInput').value);
-            if (isNaN(guestCount) || guestCount < 1) guestCount = 14;  // Default to 14 if invalid
+            if (isNaN(guestCount) || guestCount < 1) guestCount = 14;
 
             clearInterval(countdownInterval);
             document.getElementById('screen').classList.remove('green');
@@ -130,12 +132,14 @@
             // Update hourly guest count in Firebase
             const throughputRef = firebase.database().ref('throughput/' + hour);
             throughputRef.transaction(currentData => {
-                return (currentData || 0) + guestCount;
+                const newGuestCount = (currentData || 0) + guestCount;
+                console.log("Writing to Firebase:", newGuestCount);
+                return newGuestCount;
             });
         }
 
         function resetScreen() {
-            console.log("Resetting Screen");  // Debug: Check if reset is triggered
+            console.log("Resetting Screen");
             document.getElementById('screen').classList.remove('red');
             document.getElementById('screen').classList.add('green');
             document.getElementById('screen').innerText = 'SEND IN GROUP';
