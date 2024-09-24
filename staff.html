@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scare Maze Staff Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database.js"></script>
+    <!-- Include Firebase Auth if using authentication -->
+    <!-- <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js"></script> -->
+    <style>
+        /* Styles for Staff Panel */
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: black;
+        }
+        .container {
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            color: white;
+        }
+        .screen {
+            width: 100%;
+            height: 70%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            color: white;
+            transition: background-color 0.5s ease;
+        }
+        .green {
+            background-color: green;
+            animation: flash 1s infinite;
+        }
+        .red {
+            background-color: red;
+        }
+        @keyframes flash {
+            0% { background-color: darkgreen; }
+            50% { background-color: green; }
+            100% { background-color: darkgreen; }
+        }
+        #timeSinceLastGroup {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+        #guestInput {
+            margin-top: 20px;
+            font-size: 1.5em;
+            padding: 10px;
+            width: 80px;
+            text-align: center;
+        }
+        #guestLabel {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="screen" class="screen green" onclick="sendGroup()">
+            SEND IN GROUP
+        </div>
+        <div id="timeSinceLastGroup">Time Since Last Group: 0 seconds</div>
+        <div>
+            <label id="guestLabel" for="guestInput">Number of Guests:</label>
+            <input type="number" id="guestInput" value="14" min="1" max="50" />
+        </div>
+    </div>
+
+    <script>
+        // Your Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let countdownTime = 10; // Default, will be fetched from Firebase
+        let countdownInterval;
+        let groupSentTime = 0;
+
+        // Fetch countdownTime from Firebase
+        firebase.database().ref('settings/countdownTime').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data !== null) {
+                countdownTime = data;
+            }
+        });
+
+        function sendGroup() {
+            let guestCount = parseInt(document.getElementById('guestInput').value);
+            if (isNaN(guestCount) || guestCount < 1) guestCount = 14;  // Default to 14 if invalid
+
+            clearInterval(countdownInterval);
+            document.getElementById('screen').classList.remove('green');
+            document.getElementById('screen').classList.add('red');
+            document.getElementById('screen').innerText = 'Group Sent - Timer Running';
+
+            let countdown = countdownTime;
+            countdownInterval = setInterval(() => {
+                countdown--;
+                document.getElementById('screen').innerText = 'Next Group In: ' + countdown + ' seconds';
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    resetScreen();
+                }
+            }, 1000);
+
+            let now = new Date();
+            groupSentTime = now.getTime();
+            updateTimeSinceLastGroup();
+
+            const hour = now.getHours();
+
+            // Update hourly guest count in Firebase
+            const throughputRef = firebase.database().ref('throughput/' + hour);
+            throughputRef.transaction(currentData => {
+                return (currentData || 0) + guestCount;
+            });
+        }
+
+        function resetScreen() {
+            document.getElementById('screen').classList.remove('red');
+            document.getElementById('screen').classList.add('green');
+            document.getElementById('screen').innerText = 'SEND IN GROUP';
+        }
+
+        function updateTimeSinceLastGroup() {
+            setInterval(() => {
+                let now = new Date().getTime();
+                let diff = Math.floor((now - groupSentTime) / 1000);
+                document.getElementById('timeSinceLastGroup').innerText = 'Time Since Last Group: ' + diff + ' seconds';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
